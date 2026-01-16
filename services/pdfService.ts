@@ -2,8 +2,25 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Invoice, PaymentStatus } from "../types";
 
+// Helper to convert image URL to base64
+const getImageBase64 = async (url: string): Promise<string> => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error loading image:', error);
+    return '';
+  }
+};
+
 // Helper to generate the jsPDF instance
-const createInvoiceDoc = (invoice: Invoice, logoUrl?: string): jsPDF => {
+const createInvoiceDoc = async (invoice: Invoice, logoUrl?: string): Promise<jsPDF> => {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -16,6 +33,33 @@ const createInvoiceDoc = (invoice: Invoice, logoUrl?: string): jsPDF => {
   const rightMargin = 20;
 
   let yPos = 25;
+
+  // --- HEADER BACKGROUND (Mirrorzone Only) ---
+  if (invoice.company === 'mirrorzone') {
+    doc.setFillColor(15, 23, 42); // Slate-900 (Dark)
+    doc.rect(0, 0, pageWidth, 52, 'F');
+  }
+
+  // --- LOGO SECTION ---
+  // Determine which logo to use based on company
+  const logoPath = invoice.company === 'mirrorzone'
+    ? '/mirrorzone-logo.png'
+    : '/clonmel-logo.png';
+
+  try {
+    const logoBase64 = await getImageBase64(logoPath);
+    if (logoBase64) {
+      // Add logo in the top right corner
+      const logoWidth = invoice.company === 'mirrorzone' ? 40 : 50;
+      const logoHeight = invoice.company === 'mirrorzone' ? 40 : 15;
+      const logoX = pageWidth - rightMargin - logoWidth;
+      const logoY = 10;
+
+      doc.addImage(logoBase64, 'PNG', logoX, logoY, logoWidth, logoHeight);
+    }
+  } catch (error) {
+    console.error('Error adding logo to PDF:', error);
+  }
 
   // --- PAID/UNPAID BANNER (Top-left corner) ---
   const isPaid = invoice.status === PaymentStatus.PAID || invoice.balanceDue === 0;
@@ -41,29 +85,31 @@ const createInvoiceDoc = (invoice: Invoice, logoUrl?: string): jsPDF => {
   // Left: "Invoice" title and number
   doc.setFont("helvetica", "normal");
   doc.setFontSize(28);
-  doc.setTextColor(80, 80, 80);
+
+  // Set text color: White for Mirrorzone (dark bg), Dark Grey for others
+  if (invoice.company === 'mirrorzone') {
+    doc.setTextColor(255, 255, 255);
+  } else {
+    doc.setTextColor(80, 80, 80);
+  }
+
   doc.text("Invoice", leftMargin, yPos);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.setTextColor(0, 0, 0);
+
+  // Keep same conditional color or just reset to black/white
+  if (invoice.company === 'mirrorzone') {
+    doc.setTextColor(255, 255, 255);
+  } else {
+    doc.setTextColor(0, 0, 0);
+  }
+
   doc.text(invoice.invoiceNumber, leftMargin, yPos + 10);
 
-  // Right: Company name and tagline
-  const companyName = invoice.company === 'mirrorzone' ? 'CLONMEL GLASS' : 'CLONMEL GLASS';
-  const tagline = 'Professional Solutions';
+  // Logo is already added above, no need for text company name
+  yPos += 40; // Adjusted to account for logo space and header bg
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(0, 174, 239); // Cyan blue
-  doc.text(companyName, pageWidth - rightMargin, yPos, { align: 'right' });
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(100, 100, 100);
-  doc.text(tagline, pageWidth - rightMargin, yPos + 6, { align: 'right' });
-
-  yPos += 25;
 
   // --- ADDRESS SECTION (3 columns) ---
   doc.setFont("helvetica", "bold");
@@ -244,12 +290,12 @@ const createInvoiceDoc = (invoice: Invoice, logoUrl?: string): jsPDF => {
 };
 
 // Exported Actions
-export const downloadInvoicePDF = (invoice: Invoice, logoUrl?: string) => {
-  const doc = createInvoiceDoc(invoice, logoUrl);
+export const downloadInvoicePDF = async (invoice: Invoice, logoUrl?: string) => {
+  const doc = await createInvoiceDoc(invoice, logoUrl);
   doc.save(`${invoice.invoiceNumber}.pdf`);
 };
 
-export const generatePreviewUrl = (invoice: Invoice, logoUrl?: string): string => {
-  const doc = createInvoiceDoc(invoice, logoUrl);
+export const generatePreviewUrl = async (invoice: Invoice, logoUrl?: string): Promise<string> => {
+  const doc = await createInvoiceDoc(invoice, logoUrl);
   return doc.output('bloburl').toString();
 };

@@ -345,9 +345,9 @@ const Dashboard = () => {
     }
   };
 
-  const handlePreview = (inv: Invoice) => {
+  const handlePreview = async (inv: Invoice) => {
     try {
-      const url = generatePreviewUrl(inv, companyLogo);
+      const url = await generatePreviewUrl(inv, companyLogo);
       setPreviewUrl(url);
     } catch (e) {
       alert("Preview failed.");
@@ -391,7 +391,7 @@ const Dashboard = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
-            Clonmel <span className="text-brand-500 font-black">Admin Pulse</span>
+            <span className="text-brand-500 font-black">Dashboard</span>
           </h2>
           <p className="text-slate-500 font-medium">Operations Dashboard</p>
         </div>

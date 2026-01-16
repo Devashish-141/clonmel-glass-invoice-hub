@@ -335,7 +335,20 @@ const InvoiceBuilder = () => {
                   type="date"
                   className="w-full text-slate-900 bg-white border-2 border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-brand-500 outline-none transition-all"
                   value={invoiceDate}
-                  onChange={e => setInvoiceDate(e.target.value)}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (value) {
+                      const year = new Date(value).getFullYear();
+                      // Only prevent years > 4 digits (9999)
+                      // We must allow small years (e.g. 2, 20, 202) to enable typing
+                      if (year <= 9999) {
+                        setInvoiceDate(value);
+                      }
+                    } else {
+                      setInvoiceDate(value);
+                    }
+                  }}
+                  max="9999-12-31"
                 />
               </div>
               <div>
@@ -344,7 +357,19 @@ const InvoiceBuilder = () => {
                   type="date"
                   className="w-full text-slate-900 bg-white border-2 border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-brand-500 outline-none transition-all"
                   value={dueDate}
-                  onChange={e => setDueDate(e.target.value)}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (value) {
+                      const year = new Date(value).getFullYear();
+                      // Only prevent years > 4 digits (9999)
+                      if (year <= 9999) {
+                        setDueDate(value);
+                      }
+                    } else {
+                      setDueDate(value);
+                    }
+                  }}
+                  max="9999-12-31"
                 />
               </div>
             </div>

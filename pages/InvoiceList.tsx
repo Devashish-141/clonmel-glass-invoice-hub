@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Invoice, PaymentStatus } from '../types';
-import { Search, CreditCard, Download, Eye, X, Check, DollarSign, BellRing, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, CreditCard, Download, Eye, X, Check, DollarSign, BellRing, Clock, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import { downloadInvoicePDF, generatePreviewUrl } from '../services/pdfService';
 
 const formatCurrency = (amount: number) => {
@@ -62,7 +62,7 @@ const ProgressBar = ({ paid, total }: { paid: number, total: number }) => {
 };
 
 const InvoiceList = () => {
-  const { invoices, updateInvoice, setView, companyLogo, selectedInvoiceId, setSelectedInvoiceId } = useApp();
+  const { invoices, updateInvoice, deleteInvoice, setView, companyLogo, selectedInvoiceId, setSelectedInvoiceId } = useApp();
   const [filter, setFilter] = useState('');
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<string>('');
@@ -96,20 +96,30 @@ const InvoiceList = () => {
     setPaymentAmount('');
   };
 
-  const handleDownload = (inv: Invoice) => {
+  const handleDownload = async (inv: Invoice) => {
     try {
-      downloadInvoicePDF(inv, companyLogo);
+      await downloadInvoicePDF(inv, companyLogo);
     } catch (e) {
       alert("Download failed. Check console.");
     }
   };
 
-  const handlePreview = (inv: Invoice) => {
+  const handlePreview = async (inv: Invoice) => {
     try {
-      const url = generatePreviewUrl(inv, companyLogo);
+      const url = await generatePreviewUrl(inv, companyLogo);
       setPreviewUrl(url);
     } catch (e) {
       alert("Preview failed.");
+    }
+  };
+
+  const handleDelete = async (inv: Invoice) => {
+    if (window.confirm(`Are you sure you want to delete invoice ${inv.invoiceNumber}? This action cannot be undone.`)) {
+      try {
+        await deleteInvoice(inv.id);
+      } catch (e) {
+        alert("Failed to delete invoice. Please try again.");
+      }
     }
   };
 
@@ -216,6 +226,9 @@ const InvoiceList = () => {
                         </button>
                         <button onClick={() => handleDownload(inv)} className="p-3 text-slate-600 bg-slate-100 hover:bg-slate-600 hover:text-white rounded-2xl transition-all shadow-sm" title="Download PDF">
                           <Download size={18} />
+                        </button>
+                        <button onClick={() => handleDelete(inv)} className="p-3 text-rose-600 bg-rose-50 hover:bg-rose-600 hover:text-white rounded-2xl transition-all shadow-sm" title="Delete Invoice">
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </td>

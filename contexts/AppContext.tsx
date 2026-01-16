@@ -114,6 +114,7 @@ interface AppContextType {
   invoices: Invoice[];
   addInvoice: (invoice: Invoice) => Promise<void>;
   updateInvoice: (invoice: Invoice) => Promise<void>;
+  deleteInvoice: (id: string) => Promise<void>;
   customers: Customer[];
   addCustomer: (customer: Customer) => Promise<void>;
   updateCustomer: (customer: Customer) => Promise<void>;
@@ -287,6 +288,23 @@ export const AppProvider = ({ children }: { children?: ReactNode }) => {
     }
   };
 
+  const deleteInvoice = async (id: string) => {
+    // Optimistic Update: Remove immediately from UI
+    const previousInvoices = invoices;
+    setInvoices(prev => prev.filter(i => i.id !== id));
+
+    setIsSyncing(true);
+    try {
+      await storageService.deleteInvoice(id);
+    } catch (e) {
+      console.error("Delete failed, rolling back UI", e);
+      setInvoices(previousInvoices); // Revert on failure
+      throw e;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const updateLogo = async (logo: string) => {
     setIsSyncing(true);
     try {
@@ -334,7 +352,7 @@ export const AppProvider = ({ children }: { children?: ReactNode }) => {
       user, login, logout,
       users, addUser, deleteUser,
       products, addProduct, updateProduct, deleteProduct,
-      invoices, addInvoice, updateInvoice,
+      invoices, addInvoice, updateInvoice, deleteInvoice,
       customers, addCustomer, updateCustomer, deleteCustomer,
       currentView, setView,
       selectedInvoiceId, setSelectedInvoiceId,

@@ -83,6 +83,7 @@ export const storageService = {
       customer_email: String(invoice.customerEmail),
       customer_phone: String(invoice.customerPhone || ''),
       customer_address: String(invoice.customerAddress),
+      company: String(invoice.company || 'clonmel'),
       items: invoice.items,
       subtotal: Number(invoice.subtotal),
       tax_rate: Number(invoice.taxRate),
@@ -122,6 +123,11 @@ export const storageService = {
       }
       throw error;
     }
+  },
+
+  async deleteInvoice(id: string): Promise<void> {
+    const { error } = await supabase.from('invoices').delete().eq('id', String(id));
+    if (error) throw error;
   },
 
   // --- Users ---

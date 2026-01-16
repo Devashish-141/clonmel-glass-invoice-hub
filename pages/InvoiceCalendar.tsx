@@ -69,9 +69,17 @@ const InvoiceCalendar = () => {
   const invoicesByDate = useMemo(() => {
     const map: Record<string, Invoice[]> = {};
     invoices.forEach(inv => {
-      const dateStr = new Date(inv.dueDate).toISOString().split('T')[0];
-      if (!map[dateStr]) map[dateStr] = [];
-      map[dateStr].push(inv);
+      try {
+        if (!inv.dueDate) return;
+        const date = new Date(inv.dueDate);
+        if (isNaN(date.getTime())) return; // Skip invalid dates
+
+        const dateStr = date.toISOString().split('T')[0];
+        if (!map[dateStr]) map[dateStr] = [];
+        map[dateStr].push(inv);
+      } catch (e) {
+        console.warn('Skipping invoice with invalid date:', inv.id);
+      }
     });
     return map;
   }, [invoices]);
@@ -271,7 +279,7 @@ const InvoiceCalendar = () => {
                       <div className="flex items-center justify-between pt-4 border-t border-white/5">
                         <div className="flex items-center gap-2">
                           <Euro size={12} className="text-brand-500" />
-                          <span className="text-sm font-black text-white">€{inv.total.toFixed(2)}</span>
+                          <span className="text-sm font-black text-white">€{inv.balanceDue.toFixed(2)}</span>
                         </div>
                         <button
                           onClick={() => setView('INVOICES')}
@@ -291,7 +299,7 @@ const InvoiceCalendar = () => {
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
                   <span className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Due</span>
                   <span className="text-base font-black text-white">
-                    €{selectedInvoices.reduce((sum, i) => sum + i.total, 0).toFixed(0)}
+                    €{selectedInvoices.reduce((sum, i) => sum + i.balanceDue, 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="bg-brand-600 p-4 rounded-2xl shadow-xl shadow-brand-500/10">
