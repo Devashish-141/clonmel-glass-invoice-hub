@@ -99,7 +99,7 @@ const InvoiceCalendar = () => {
   const todayStr = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-12">
+    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-12">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h2 className="text-4xl font-black text-slate-800 tracking-tight flex items-center gap-4">
@@ -220,7 +220,7 @@ const InvoiceCalendar = () => {
 
         {/* Sidebar Schedule Details */}
         <div className="xl:col-span-1">
-          <div className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl h-full flex flex-col border border-white/5 relative overflow-hidden">
+          <div className="bg-black rounded-[2.5rem] p-8 shadow-2xl h-full flex flex-col border border-white/5 relative overflow-hidden">
             {/* Decorative Elements */}
             <div className="absolute top-0 right-0 h-40 w-40 bg-brand-500/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
 

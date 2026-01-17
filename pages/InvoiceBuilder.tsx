@@ -195,8 +195,7 @@ const InvoiceBuilder = () => {
                   }`}
               >
                 <div className={`text-center ${company === 'mirrorzone' ? 'text-slate-900' : 'text-white'}`}>
-                  <div className="text-xl font-black mb-1">MIRRORZONE 2</div>
-                  <div className="text-xs font-semibold opacity-70">Premium Solutions</div>
+                  <div className="text-xl font-black">MIRRORZONE</div>
                   {company === 'mirrorzone' && (
                     <div className="mt-3 inline-flex items-center gap-2 bg-slate-900 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
                       <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
@@ -386,241 +385,247 @@ const InvoiceBuilder = () => {
         </div>
 
         {/* Item Builder */}
-        <div className="p-6 md:p-8">
-          <div className="mb-8 p-6 bg-slate-50 rounded-2xl border-2 border-slate-100 space-y-6">
-            <div className="flex flex-col md:flex-row gap-6 items-end">
-              <div className="flex-1 w-full">
-                <label className="block text-xs font-black text-slate-600 mb-3 uppercase tracking-wider flex items-center gap-2">
-                  <span className="flex items-center justify-center h-5 w-5 bg-brand-600 text-white rounded-full text-[10px]">1</span>
-                  Select Product from Catalog
-                </label>
-                <select
-                  className="w-full border-2 border-slate-200 text-slate-900 rounded-xl px-5 py-4 text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 bg-white shadow-sm transition-all appearance-none"
-                  value={selectedProductId}
-                  onChange={e => {
-                    const id = e.target.value;
-                    setSelectedProductId(id);
-                    const prod = products.find(p => p.id === id);
-                    if (prod) {
-                      setCustomDescription(prod.name);
-                      if (prod.unit === 'sqm') {
-                        setShowCalculator(true);
-                        setQuantity(0);
-                      } else {
-                        setShowCalculator(false);
-                        setQuantity(1);
-                      }
-                    } else {
-                      setCustomDescription('');
-                    }
-                  }}
-                >
-                  <option value="">Search all glass & mirrors...</option>
-                  {Object.entries(groupedProducts).map(([cat, prods]) => (
-                    <optgroup key={cat} label={cat} className="text-slate-900 font-bold bg-slate-50">
-                      {(prods as Product[]).map(p => (
-                        <option key={p.id} value={p.id} className="text-slate-900 font-medium">{p.name} — {formatCurrency(p.price)}/{p.unit}</option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
-              </div>
-
-              {selectedProductId && (
+        {company === 'clonmel' && (
+          <>
+            <div className="mb-8 p-6 bg-slate-50 rounded-2xl border-2 border-slate-100 space-y-6">
+              <div className="flex flex-col md:flex-row gap-6 items-end">
                 <div className="flex-1 w-full">
-                  <label className="block text-xs font-black text-slate-600 mb-3 uppercase tracking-wider">
-                    Renaming (Optional)
+                  <label className="block text-xs font-black text-slate-600 mb-3 uppercase tracking-wider flex items-center gap-2">
+                    <span className="flex items-center justify-center h-5 w-5 bg-brand-600 text-white rounded-full text-[10px]">1</span>
+                    Select Product from Catalog
                   </label>
-                  <input
-                    type="text"
-                    className="w-full border-2 border-slate-200 text-slate-900 rounded-xl px-4 py-4 text-base font-medium focus:outline-none focus:border-brand-500 bg-white shadow-sm"
-                    value={customDescription}
-                    onChange={e => setCustomDescription(e.target.value)}
-                    placeholder="Rename product for invoice..."
-                  />
+                  <select
+                    className="w-full border-2 border-slate-200 text-slate-900 rounded-xl px-5 py-4 text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 bg-white shadow-sm transition-all appearance-none"
+                    value={selectedProductId}
+                    onChange={e => {
+                      const id = e.target.value;
+                      setSelectedProductId(id);
+                      const prod = products.find(p => p.id === id);
+                      if (prod) {
+                        setCustomDescription(prod.name);
+                        if (prod.unit === 'sqm') {
+                          setShowCalculator(true);
+                          setQuantity(0);
+                        } else {
+                          setShowCalculator(false);
+                          setQuantity(1);
+                        }
+                      } else {
+                        setCustomDescription('');
+                      }
+                    }}
+                  >
+                    <option value="">Search all glass & mirrors...</option>
+                    {Object.entries(groupedProducts).map(([cat, prods]) => (
+                      <optgroup key={cat} label={cat} className="text-slate-900 font-bold bg-slate-50">
+                        {(prods as Product[]).map(p => (
+                          <option key={p.id} value={p.id} className="text-slate-900 font-medium">{p.name} — {formatCurrency(p.price)}/{p.unit}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
                 </div>
-              )}
 
-              {!showCalculator && selectedProductId && (
-                <div className="w-full md:w-32 animate-in zoom-in duration-200">
-                  <label className="block text-xs font-black text-slate-600 mb-3 uppercase tracking-wider">Quantity</label>
-                  <input
-                    type="number"
-                    min="1"
-                    className="w-full border-2 border-slate-200 text-slate-900 rounded-xl px-4 py-4 text-base font-bold focus:outline-none focus:border-brand-500 bg-white shadow-sm"
-                    value={quantity}
-                    onChange={e => setQuantity(Number(e.target.value))}
-                  />
-                </div>
-              )}
-
-              <div className="w-full md:w-auto flex flex-col gap-2">
                 {selectedProductId && (
-                  <div className="text-right px-2 animate-in fade-in duration-300">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Subtotal: {formatCurrency(currentLineTotal)}</span>
-                    <span className="text-xs font-black text-brand-600 block">Inc VAT: {formatCurrency(currentLineTotalIncTax)}</span>
+                  <div className="flex-1 w-full">
+                    <label className="block text-xs font-black text-slate-600 mb-3 uppercase tracking-wider">
+                      Renaming (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border-2 border-slate-200 text-slate-900 rounded-xl px-4 py-4 text-base font-medium focus:outline-none focus:border-brand-500 bg-white shadow-sm"
+                      value={customDescription}
+                      onChange={e => setCustomDescription(e.target.value)}
+                      placeholder="Rename product for invoice..."
+                    />
                   </div>
                 )}
-                <button
-                  onClick={addItem}
-                  disabled={!selectedProductId || (showCalculator && (isNaN(parseFloat(width)) || isNaN(parseFloat(height)) || parseFloat(width) <= 0 || parseFloat(height) <= 0))}
-                  className="w-full bg-brand-600 text-white px-10 py-4 rounded-xl hover:bg-brand-700 transition-all flex items-center justify-center space-x-3 text-sm font-black shadow-xl shadow-brand-500/20 disabled:opacity-50 disabled:shadow-none"
-                >
-                  <Plus size={20} />
-                  <span>ADD TO INVOICE</span>
-                </button>
-              </div>
-            </div>
 
-            {showCalculator && (
-              <div className="flex flex-col md:flex-row items-stretch gap-6 p-6 bg-white rounded-2xl border-2 border-brand-500 shadow-2xl animate-in slide-in-from-top-4 duration-300">
-                <div className="flex items-center justify-center px-4 text-brand-500 bg-brand-50 rounded-xl">
-                  <Ruler size={32} />
-                </div>
-                <div className="grid grid-cols-2 gap-6 flex-1 w-full">
-                  <div className="space-y-1">
-                    <label className="block text-xs font-black text-brand-600 uppercase tracking-widest ml-1">
-                      Width (mm)
-                    </label>
+                {!showCalculator && selectedProductId && (
+                  <div className="w-full md:w-32 animate-in zoom-in duration-200">
+                    <label className="block text-xs font-black text-slate-600 mb-3 uppercase tracking-wider">Quantity</label>
                     <input
                       type="number"
-                      placeholder="0"
-                      autoFocus
-                      className="w-full border-4 border-brand-100 bg-white text-slate-900 rounded-xl px-5 py-4 text-xl font-black outline-none focus:border-brand-500 transition-all placeholder:text-slate-300"
-                      value={width}
-                      onChange={e => { setWidth(e.target.value); calculateArea(e.target.value, height); }}
+                      min="1"
+                      className="w-full border-2 border-slate-200 text-slate-900 rounded-xl px-4 py-4 text-base font-bold focus:outline-none focus:border-brand-500 bg-white shadow-sm"
+                      value={quantity}
+                      onChange={e => setQuantity(Number(e.target.value))}
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="block text-xs font-black text-brand-600 uppercase tracking-widest ml-1">
-                      Height (mm)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="0"
-                      className="w-full border-4 border-brand-100 bg-white text-slate-900 rounded-xl px-5 py-4 text-xl font-black outline-none focus:border-brand-500 transition-all placeholder:text-slate-300"
-                      value={height}
-                      onChange={e => { setHeight(e.target.value); calculateArea(width, e.target.value); }}
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-row md:flex-col items-center justify-center gap-4 w-full md:w-48 pt-4 md:pt-0 border-t md:border-t-0 md:border-l border-slate-100">
-                  <div className="text-center">
-                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Calculated SQM</label>
-                    <div className="text-3xl font-black text-brand-600 leading-none">
-                      {quantity.toFixed(6)}
+                )}
+
+                <div className="w-full md:w-auto flex flex-col gap-2">
+                  {selectedProductId && (
+                    <div className="text-right px-2 animate-in fade-in duration-300">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Subtotal: {formatCurrency(currentLineTotal)}</span>
+                      <span className="text-xs font-black text-brand-600 block">Inc VAT: {formatCurrency(currentLineTotalIncTax)}</span>
                     </div>
-                  </div>
+                  )}
                   <button
-                    onClick={() => { setWidth(''); setHeight(''); setQuantity(0); }}
-                    className="px-4 py-2 text-[10px] font-black text-rose-500 hover:text-white bg-rose-50 hover:bg-rose-500 rounded-lg transition-all uppercase tracking-widest"
+                    onClick={addItem}
+                    disabled={!selectedProductId || (showCalculator && (isNaN(parseFloat(width)) || isNaN(parseFloat(height)) || parseFloat(width) <= 0 || parseFloat(height) <= 0))}
+                    className="w-full bg-brand-600 text-white px-10 py-4 rounded-xl hover:bg-brand-700 transition-all flex items-center justify-center space-x-3 text-sm font-black shadow-xl shadow-brand-500/20 disabled:opacity-50 disabled:shadow-none"
                   >
-                    Clear
+                    <Plus size={20} />
+                    <span>ADD TO INVOICE</span>
                   </button>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Items Table */}
-          <div className="overflow-x-auto rounded-xl border-2 border-slate-100">
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b-2 border-slate-100">
-                <tr>
-                  <th className="text-left py-5 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Product Description</th>
-                  <th className="text-center py-5 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Qty / SQM</th>
-                  <th className="text-right py-5 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Unit Price</th>
-                  <th className="text-right py-5 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Line Total</th>
-                  <th className="w-16"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {items.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-20 text-center text-slate-400">
-                      <div className="flex flex-col items-center space-y-3">
-                        <Calculator size={48} className="opacity-20" />
-                        <p className="text-sm font-medium italic">No items added to this invoice yet.</p>
+              {showCalculator && (
+                <div className="flex flex-col md:flex-row items-stretch gap-6 p-6 bg-white rounded-2xl border-2 border-brand-500 shadow-2xl animate-in slide-in-from-top-4 duration-300">
+                  <div className="flex items-center justify-center px-4 text-brand-500 bg-brand-50 rounded-xl">
+                    <Ruler size={32} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-6 flex-1 w-full">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-black text-brand-600 uppercase tracking-widest ml-1">
+                        Width (mm)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        autoFocus
+                        className="w-full border-4 border-brand-100 bg-white text-slate-900 rounded-xl px-5 py-4 text-xl font-black outline-none focus:border-brand-500 transition-all placeholder:text-slate-300"
+                        value={width}
+                        onChange={e => { setWidth(e.target.value); calculateArea(e.target.value, height); }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-black text-brand-600 uppercase tracking-widest ml-1">
+                        Height (mm)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        className="w-full border-4 border-brand-100 bg-white text-slate-900 rounded-xl px-5 py-4 text-xl font-black outline-none focus:border-brand-500 transition-all placeholder:text-slate-300"
+                        value={height}
+                        onChange={e => { setHeight(e.target.value); calculateArea(width, e.target.value); }}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-row md:flex-col items-center justify-center gap-4 w-full md:w-48 pt-4 md:pt-0 border-t md:border-t-0 md:border-l border-slate-100">
+                    <div className="text-center">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Calculated SQM</label>
+                      <div className="text-3xl font-black text-brand-600 leading-none">
+                        {quantity.toFixed(6)}
                       </div>
-                    </td>
+                    </div>
+                    <button
+                      onClick={() => { setWidth(''); setHeight(''); setQuantity(0); }}
+                      className="px-4 py-2 text-[10px] font-black text-rose-500 hover:text-white bg-rose-50 hover:bg-rose-500 rounded-lg transition-all uppercase tracking-widest"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Items Table */}
+            <div className="overflow-x-auto rounded-xl border-2 border-slate-100">
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b-2 border-slate-100">
+                  <tr>
+                    <th className="text-left py-5 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Product Description</th>
+                    <th className="text-center py-5 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Qty / SQM</th>
+                    <th className="text-right py-5 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Unit Price</th>
+                    <th className="text-right py-5 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Line Total</th>
+                    <th className="w-16"></th>
                   </tr>
-                ) : (
-                  items.map(item => (
-                    <tr key={item.id} className="group hover:bg-slate-50/80 transition-colors">
-                      <td className="py-5 px-6">
-                        <div className="text-sm font-bold text-slate-900">{item.description}</div>
-                        <div className="text-[10px] text-brand-500 font-mono font-bold mt-1">{item.productId}</div>
-                      </td>
-                      <td className="py-5 px-6 text-center text-sm font-black text-slate-700">{item.quantity}</td>
-                      <td className="py-5 px-6 text-right text-sm font-medium text-slate-500">{formatCurrency(item.unitPrice)}</td>
-                      <td className="py-5 px-6 text-right text-base font-black text-slate-900">{formatCurrency(item.total)}</td>
-                      <td className="py-5 px-6 text-right">
-                        <button onClick={() => removeItem(item.id)} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
-                          <Trash2 size={18} />
-                        </button>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {items.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-20 text-center text-slate-400">
+                        <div className="flex flex-col items-center space-y-3">
+                          <Calculator size={48} className="opacity-20" />
+                          <p className="text-sm font-medium italic">No items added to this invoice yet.</p>
+                        </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Footer / Totals */}
-          <div className="flex flex-col md:flex-row justify-between items-start pt-10 mt-6 border-t-2 border-slate-100">
-            <div className="w-full md:w-1/2 pr-0 md:pr-12 mb-10 md:mb-0">
-              <div className="flex justify-between items-center mb-4">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                  <Wand2 size={14} className="text-purple-500" />
-                  Custom Notes & Terms
-                </label>
-                <button
-                  onClick={handleAiNotes}
-                  disabled={loadingAi || items.length === 0}
-                  className="px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center space-x-2 text-purple-600 bg-purple-50 hover:bg-purple-600 hover:text-white disabled:opacity-30 transition-all uppercase tracking-widest"
-                >
-                  <Wand2 size={12} />
-                  <span>{loadingAi ? 'Drafting...' : 'Magic AI Suggestion'}</span>
-                </button>
-              </div>
-              <textarea
-                className="w-full border-2 border-slate-200 text-slate-900 rounded-2xl px-5 py-4 text-sm h-40 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none resize-none shadow-sm transition-all"
-                placeholder="Enter specific project notes or banking instructions..."
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
-              />
-              <p className="text-[10px] font-bold text-slate-400 mt-3 uppercase tracking-wider">Note: These details are visible to the customer on the PDF.</p>
+                  ) : (
+                    items.map(item => (
+                      <tr key={item.id} className="group hover:bg-slate-50/80 transition-colors">
+                        <td className="py-5 px-6">
+                          <div className="text-sm font-bold text-slate-900">{item.description}</div>
+                          <div className="text-[10px] text-brand-500 font-mono font-bold mt-1">{item.productId}</div>
+                        </td>
+                        <td className="py-5 px-6 text-center text-sm font-black text-slate-700">{item.quantity}</td>
+                        <td className="py-5 px-6 text-right text-sm font-medium text-slate-500">{formatCurrency(item.unitPrice)}</td>
+                        <td className="py-5 px-6 text-right text-base font-black text-slate-900">{formatCurrency(item.total)}</td>
+                        <td className="py-5 px-6 text-right">
+                          <button onClick={() => removeItem(item.id)} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
+                            <Trash2 size={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
+          </>
+        )}
 
-            <div className="w-full md:w-[360px] bg-slate-900 text-white p-8 rounded-[2.5rem] space-y-6 shadow-2xl relative overflow-hidden">
-              <div className="absolute -top-10 -right-10 h-32 w-32 bg-brand-500/10 rounded-full blur-3xl"></div>
-
-              <div className="space-y-4 relative z-10">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400 font-bold uppercase tracking-widest">Subtotal</span>
-                  <span className="font-mono font-bold text-lg">{formatCurrency(subtotal)}</span>
+        {company === 'clonmel' && (
+          <div className="p-6 md:p-8">
+            {/* Footer / Totals */}
+            <div className="flex flex-col md:flex-row justify-between items-start pt-10 mt-6 border-t-2 border-slate-100">
+              <div className="w-full md:w-1/2 pr-0 md:pr-12 mb-10 md:mb-0">
+                <div className="flex justify-between items-center mb-4">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <Wand2 size={14} className="text-purple-500" />
+                    Custom Notes & Terms
+                  </label>
+                  <button
+                    onClick={handleAiNotes}
+                    disabled={loadingAi || items.length === 0}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center space-x-2 text-purple-600 bg-purple-50 hover:bg-purple-600 hover:text-white disabled:opacity-30 transition-all uppercase tracking-widest"
+                  >
+                    <Wand2 size={12} />
+                    <span>{loadingAi ? 'Drafting...' : 'Magic AI Suggestion'}</span>
+                  </button>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <div className="flex flex-col">
-                    <span className="text-slate-400 font-bold uppercase tracking-widest">VAT Amount</span>
-                    <span className="text-[10px] font-black text-brand-400">Standard {taxRate}%</span>
-                  </div>
-                  <span className="font-mono font-bold text-lg">{formatCurrency(taxAmount)}</span>
-                </div>
+                <textarea
+                  className="w-full border-2 border-slate-200 text-slate-900 rounded-2xl px-5 py-4 text-sm h-40 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none resize-none shadow-sm transition-all"
+                  placeholder="Enter specific project notes or banking instructions..."
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
+                />
+                <p className="text-[10px] font-bold text-slate-400 mt-3 uppercase tracking-wider">Note: These details are visible to the customer on the PDF.</p>
               </div>
 
-              <div className="pt-6 border-t border-white/10 relative z-10">
-                <div className="flex justify-between items-center">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-brand-500 uppercase tracking-widest">Total Invoice Value</span>
-                    <span className="text-3xl font-black tracking-tighter">TOTAL DUE</span>
+              <div className="w-full md:w-[360px] bg-slate-900 text-white p-8 rounded-[2.5rem] space-y-6 shadow-2xl relative overflow-hidden">
+                <div className="absolute -top-10 -right-10 h-32 w-32 bg-brand-500/10 rounded-full blur-3xl"></div>
+
+                <div className="space-y-4 relative z-10">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400 font-bold uppercase tracking-widest">Subtotal</span>
+                    <span className="font-mono font-bold text-lg">{formatCurrency(subtotal)}</span>
                   </div>
-                  <span className="text-4xl font-black text-brand-500 font-mono">{formatCurrency(total)}</span>
+                  <div className="flex justify-between text-sm">
+                    <div className="flex flex-col">
+                      <span className="text-slate-400 font-bold uppercase tracking-widest">VAT Amount</span>
+                      <span className="text-[10px] font-black text-brand-400">Standard {taxRate}%</span>
+                    </div>
+                    <span className="font-mono font-bold text-lg">{formatCurrency(taxAmount)}</span>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-white/10 relative z-10">
+                  <div className="flex justify-between items-center">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-brand-500 uppercase tracking-widest">Total Invoice Value</span>
+                      <span className="text-3xl font-black tracking-tighter">TOTAL DUE</span>
+                    </div>
+                    <span className="text-4xl font-black text-brand-500 font-mono">{formatCurrency(total)}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row justify-end gap-5 pb-20">
@@ -639,7 +644,7 @@ const InvoiceBuilder = () => {
           <span>Save & Finalize Invoice</span>
         </button>
       </div>
-    </div>
+    </div >
   );
 };
 

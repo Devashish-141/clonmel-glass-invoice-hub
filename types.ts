@@ -66,7 +66,7 @@ export interface Customer {
   name: string;
   email: string;
   phone: string;
-  gender?: 'Male' | 'Female' | 'Other';
+
   address?: string;
   city?: string;
   postalCode?: string;
@@ -79,4 +79,27 @@ export interface Customer {
   createdBy: string;
 }
 
-export type ViewState = 'LOGIN' | 'DASHBOARD' | 'INVOICES' | 'CREATE_INVOICE' | 'PRODUCTS' | 'USERS' | 'CALENDAR' | 'CUSTOMERS';
+export interface Quote {
+  id: string;
+  quoteNumber: string;
+  customerId: string;
+  customerName: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  customerAddress?: string;
+  company?: 'clonmel' | 'mirrorzone';
+  items: InvoiceItem[];
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  total: number;
+  validUntil: string;
+  dateIssued: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+  notes?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ViewState = 'LOGIN' | 'DASHBOARD' | 'INVOICES' | 'CREATE_INVOICE' | 'PRODUCTS' | 'USERS' | 'CALENDAR' | 'CUSTOMERS' | 'QUOTES';

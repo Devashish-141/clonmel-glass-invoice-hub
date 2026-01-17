@@ -5,6 +5,7 @@ import { UserRole } from '../types';
 import {
   LayoutDashboard,
   FileText,
+  FileCheck,
   Package,
   Users,
   LogOut,
@@ -30,8 +31,8 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
         setMobileMenuOpen(false);
       }}
       className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${currentView === view
-          ? 'bg-brand-50 text-brand-600 font-medium'
-          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+        ? 'bg-brand-50 text-brand-600 font-medium'
+        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
         }`}
     >
       <Icon size={20} />
@@ -44,11 +45,21 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
       {/* Sidebar - Desktop */}
       <aside className="hidden md:flex w-64 flex-col bg-white border-r border-slate-200 shadow-sm">
         <div className="p-6 border-b border-slate-100 flex flex-col items-center relative">
-          <div className="h-12 w-12 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xl mb-3 shadow-lg shadow-brand-500/30">
+          <img
+            src="/clonmel-logo.png"
+            alt="Clonmel Glass & Mirrors"
+            className="h-16 w-auto mb-3 object-contain"
+            onError={(e) => {
+              // Fallback to placeholder if image fails to load
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+            }}
+          />
+          <div className="h-12 w-12 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xl mb-3 shadow-lg shadow-brand-500/30 hidden">
             CG
           </div>
           <h1 className="text-lg font-bold text-slate-800">Clonmel Glass</h1>
-          <p className="text-xs text-slate-400">Invoice Hub</p>
+          <p className="text-xs text-slate-400">Quotes & Invoices</p>
 
           <div className="absolute top-4 right-4 flex items-center space-x-1" title={databaseError ? "Using Local Mock Data" : "Connected to Cloud DB"}>
             <div className={`h-2 w-2 rounded-full ${isSyncing ? 'bg-blue-400 animate-pulse' : databaseError ? 'bg-amber-400' : 'bg-emerald-400'}`}></div>
@@ -62,6 +73,7 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
           <NavItem view="DASHBOARD" icon={LayoutDashboard} label="Dashboard" />
           <NavItem view="CALENDAR" icon={CalendarDays} label="Schedule" />
           <NavItem view="INVOICES" icon={FileText} label="Invoices" />
+          <NavItem view="QUOTES" icon={FileCheck} label="Quotes" />
           <NavItem view="CREATE_INVOICE" icon={PlusCircle} label="New Invoice" />
           <NavItem view="CUSTOMERS" icon={UserCircle} label="Customers" />
 
@@ -144,9 +156,7 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
         )}
 
         <main className="flex-1 overflow-auto bg-slate-50 p-4 md:p-8">
-          <div className="max-w-6xl mx-auto">
-            {children}
-          </div>
+          {children}
         </main>
       </div>
     </div>

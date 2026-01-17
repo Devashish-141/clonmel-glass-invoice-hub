@@ -189,7 +189,7 @@ export const storageService = {
       name: String(customer.name),
       email: String(customer.email),
       phone: String(customer.phone),
-      gender: customer.gender,
+
       address: customer.address,
       city: customer.city,
       postal_code: customer.postalCode,
@@ -210,7 +210,7 @@ export const storageService = {
       name: String(customer.name),
       email: String(customer.email),
       phone: String(customer.phone),
-      gender: customer.gender,
+
       address: customer.address,
       city: customer.city,
       postal_code: customer.postalCode,

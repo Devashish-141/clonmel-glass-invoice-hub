@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Invoice, PaymentStatus } from '../types';
-import { Search, CreditCard, Download, Eye, X, Check, DollarSign, BellRing, Clock, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
+import { Search, CreditCard, Download, Eye, X, Check, Euro, BellRing, Clock, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import { downloadInvoicePDF, generatePreviewUrl } from '../services/pdfService';
 
 const formatCurrency = (amount: number) => {
@@ -53,7 +53,7 @@ const ProgressBar = ({ paid, total }: { paid: number, total: number }) => {
       </div>
       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all duration-1000 ease-out ${percent === 100 ? 'bg-emerald-500' : 'bg-brand-500'}`}
+          className={`h-full rounded-full transition-all duration-1000 ease-out ${percent === 100 ? 'bg-emerald-500' : 'bg-emerald-400'}`}
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -146,10 +146,10 @@ const InvoiceList = () => {
   }, [selectedInvoiceId, filteredInvoices]);
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-[95%] mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Accounts <span className="text-brand-500">Receivable</span></h2>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Invoice <span className="text-brand-500">List</span></h2>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Manage global ledger & collections</p>
         </div>
         <div className="flex items-center space-x-3">
@@ -201,7 +201,9 @@ const InvoiceList = () => {
                         <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
                           {inv.company === 'mirrorzone' ? 'Mirrorzone' : 'Clonmel Glass'}
                         </span>
-                        <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded">Issued: {inv.dateIssued}</span>
+                        <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest bg-slate-200 px-2 py-0.5 rounded">
+                          Issued: {new Date(inv.dateIssued).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
                         {inv.lastReminderSent && (
                           <span className="flex items-center gap-1 text-[9px] font-black text-brand-500 uppercase tracking-widest">
                             <BellRing size={8} /> Followed Up
@@ -209,7 +211,7 @@ const InvoiceList = () => {
                         )}
                       </div>
                     </td>
-                    <td className="py-6 px-10 text-right">
+                    <td className="py-6 px-10 text-right whitespace-nowrap">
                       <div className="text-sm font-black text-slate-900">{formatCurrency(inv.total)}</div>
                       <div className="text-[10px] font-bold text-rose-500 mt-0.5">Balance: {formatCurrency(inv.balanceDue)}</div>
                     </td>
@@ -234,26 +236,47 @@ const InvoiceList = () => {
                     </td>
                     <td className="py-6 px-10 text-center align-middle">
                       {editingPaymentId === inv.id ? (
-                        <div className="flex items-center justify-end space-x-2 bg-white border-2 border-emerald-100 p-2 rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
-                          <div className="relative w-32">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-black">€</span>
+                        <div className="flex flex-col gap-2 bg-white border-2 border-emerald-100 p-4 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200 absolute right-10 z-10 w-80">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Record Payment</span>
+                            <button onClick={() => setEditingPaymentId(null)} className="text-slate-300 hover:text-rose-500 transition-colors">
+                              <X size={14} />
+                            </button>
+                          </div>
+
+                          <div className="relative w-full">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-black">€</span>
                             <input
                               type="number"
-                              className="w-full border-2 border-slate-100 bg-white text-slate-900 rounded-xl pl-7 pr-2 py-2 text-xs font-black outline-none focus:border-emerald-500"
-                              placeholder="Amount"
+                              className="w-full border-2 border-slate-100 bg-emerald-50/30 text-emerald-900 rounded-xl pl-9 pr-4 py-3 text-lg font-black outline-none focus:border-emerald-500 transition-all placeholder:text-emerald-900/20"
+                              placeholder="0.00"
                               autoFocus
                               value={paymentAmount}
                               onChange={e => setPaymentAmount(e.target.value)}
                             />
                           </div>
+
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setPaymentAmount((inv.balanceDue * 0.5).toFixed(2))}
+                              className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors"
+                            >
+                              50%
+                            </button>
+                            <button
+                              onClick={() => setPaymentAmount(inv.balanceDue.toFixed(2))}
+                              className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors"
+                            >
+                              100%
+                            </button>
+                          </div>
+
                           <button
                             onClick={() => handlePayment(inv)}
-                            className="bg-emerald-500 text-white p-2 rounded-xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/20"
+                            className="w-full bg-emerald-500 text-white py-3 rounded-xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 mt-1"
                           >
                             <Check size={16} />
-                          </button>
-                          <button onClick={() => setEditingPaymentId(null)} className="text-slate-400 p-2 hover:bg-slate-100 rounded-xl">
-                            <X size={16} />
+                            <span className="text-xs font-black uppercase tracking-widest">Save Payment</span>
                           </button>
                         </div>
                       ) : (
@@ -261,10 +284,10 @@ const InvoiceList = () => {
                           {inv.status !== PaymentStatus.PAID && (
                             <button
                               onClick={() => { setEditingPaymentId(inv.id); setPaymentAmount(inv.balanceDue.toFixed(2)); }}
-                              className="p-3 text-emerald-500 bg-emerald-50 hover:bg-emerald-500 hover:text-white rounded-2xl transition-all shadow-sm"
+                              className="p-3 text-emerald-500 bg-emerald-50 hover:bg-emerald-500 hover:text-white rounded-2xl transition-all shadow-sm group"
                               title="Record Payment"
                             >
-                              <DollarSign size={18} />
+                              <Euro size={18} className="group-hover:scale-110 transition-transform" />
                             </button>
                           )}
                         </div>

@@ -229,10 +229,17 @@ export const AppProvider = ({ children }: { children?: ReactNode }) => {
   };
 
   const deleteUser = async (id: string) => {
+    // Optimistic Update
+    const previousUsers = users;
+    setUsers(prev => prev.filter(u => u.id !== id));
+
     setIsSyncing(true);
     try {
       await storageService.deleteUser(id);
-      setUsers(prev => prev.filter(u => u.id !== id));
+    } catch (e) {
+      console.error("Delete failed, rolling back UI", e);
+      setUsers(previousUsers); // Revert on failure
+      throw e;
     } finally {
       setIsSyncing(false);
     }

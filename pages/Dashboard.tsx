@@ -377,7 +377,7 @@ const Dashboard = () => {
   })).slice(0, 10);
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Client Detail Modal */}
       {selectedInvoiceForDetail && (
         <ClientDetailModal
@@ -526,11 +526,23 @@ const Dashboard = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#94a3b8', fontSize: 10 }}
+                    label={{ value: 'Invoice #', position: 'insideBottom', offset: -5, fill: '#94a3b8', fontSize: 10 }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#94a3b8', fontSize: 10 }}
+                    tickFormatter={(value) => formatCurrency(value)}
+                  />
                   <Tooltip
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                     cursor={{ fill: '#f8fafc' }}
+                    formatter={(value: number) => [formatCurrency(value), 'Revenue']}
                   />
                   <Bar dataKey="amount" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
                 </BarChart>

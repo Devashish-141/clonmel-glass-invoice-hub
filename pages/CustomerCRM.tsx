@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Customer } from '../types';
-import { Plus, Search, Edit2, Trash2, X, Save, Users as UsersIcon, Mail, Phone, MapPin, Building2, Tag } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, Save, Users as UsersIcon, Mail, Phone, MapPin, Building2, Tag, Upload } from 'lucide-react';
 
 const CustomerCRM = () => {
     const { customers, addCustomer, updateCustomer, deleteCustomer, user } = useApp();
     const [searchTerm, setSearchTerm] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+    const [isImporting, setIsImporting] = useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     // Form state
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         phone: '',
-        gender: 'Male' as 'Male' | 'Female' | 'Other',
+
         address: '',
         city: '',
         postalCode: '',
@@ -32,6 +34,120 @@ const CustomerCRM = () => {
         customer.phone.includes(searchTerm)
     );
 
+    const parseCSV = (text: string) => {
+        const lines = text.split(/\r?\n/);
+        if (lines.length < 2) return [];
+
+        // Simple CSV parser (can be improved or replaced with a library if needed)
+        // Checks for headers to map columns dynamically
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+
+        const result = [];
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+
+            // Handle quotes properly for basic CSV
+            const row: string[] = [];
+            let inQuote = false;
+            let currentCell = '';
+            for (let char of lines[i]) {
+                if (char === '"') {
+                    inQuote = !inQuote;
+                } else if (char === ',' && !inQuote) {
+                    row.push(currentCell.replace(/^"|"$/g, '').trim());
+                    currentCell = '';
+                } else {
+                    currentCell += char;
+                }
+            }
+            row.push(currentCell.replace(/^"|"$/g, '').trim());
+
+            if (row.length < 2) continue; // Skip empty/malformed rows
+
+            const entry: any = {};
+            headers.forEach((h, idx) => {
+                const val = row[idx] || '';
+                if (h.includes('name')) entry.name = val;
+                else if (h.includes('email')) entry.email = val;
+                else if (h.includes('phone') || h.includes('tel')) entry.phone = val;
+                else if (h.includes('city')) entry.city = val;
+                else if (h.includes('address')) entry.address = val;
+                else if (h.includes('company')) entry.company = val;
+                else if (h.includes('code') || h.includes('zip') || h.includes('post')) entry.postalCode = val;
+                else if (h.includes('country')) entry.country = val;
+            });
+
+            // Fallbacks
+            if (!entry.name && row[0]) entry.name = row[0]; // Assume first column is name
+            if (!entry.email && row[1] && row[1].includes('@')) entry.email = row[1]; // Assume second is email if it looks like one
+
+            if (entry.name) result.push(entry);
+        }
+        return result;
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsImporting(true);
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            try {
+                const text = evt.target?.result as string;
+                const importedContacts = parseCSV(text);
+
+                if (importedContacts.length === 0) {
+                    alert('No valid contacts found in CSV. Please check formatting.');
+                    return;
+                }
+
+                if (confirm(`Found ${importedContacts.length} contacts. Import now?`)) {
+                    let importedCount = 0;
+                    for (const contact of importedContacts) {
+                        try {
+                            const newCustomer: Customer = {
+                                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                                name: contact.name || 'Unknown',
+                                email: contact.email || '',
+                                phone: contact.phone || '',
+                                address: contact.address || '',
+                                city: contact.city || '',
+                                postalCode: contact.postalCode || '',
+                                country: contact.country || 'Ireland',
+                                company: contact.company || '',
+                                notes: 'Imported via CSV',
+                                tags: ['Imported'],
+                                createdAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString(),
+                                createdBy: user?.id || 'import'
+                            };
+                            await addCustomer(newCustomer);
+                            importedCount++;
+                        } catch (err) {
+                            console.error('Failed to import contact:', contact, err);
+                        }
+                    }
+                    alert(`Successfully imported ${importedCount} contacts.`);
+                }
+            } catch (err) {
+                console.error('Import error:', err);
+                alert('Failed to process CSV file.');
+            } finally {
+                setIsImporting(false);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            }
+        };
+
+        reader.readAsText(file);
+    };
+
+    // ... (existing handlers)
+
+    // And update the header part
+
+
     const handleOpenModal = (customer?: Customer) => {
         if (customer) {
             setEditingCustomer(customer);
@@ -39,7 +155,6 @@ const CustomerCRM = () => {
                 name: customer.name,
                 email: customer.email,
                 phone: customer.phone,
-                gender: customer.gender || 'Male',
                 address: customer.address || '',
                 city: customer.city || '',
                 postalCode: customer.postalCode || '',
@@ -54,7 +169,6 @@ const CustomerCRM = () => {
                 name: '',
                 email: '',
                 phone: '',
-                gender: 'Male',
                 address: '',
                 city: '',
                 postalCode: '',
@@ -111,7 +225,7 @@ const CustomerCRM = () => {
     };
 
     return (
-        <div className="space-y-6 pb-12">
+        <div className="max-w-6xl mx-auto space-y-6 pb-12">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -119,19 +233,40 @@ const CustomerCRM = () => {
                         <div className="p-3 bg-brand-500 text-white rounded-2xl shadow-xl shadow-brand-500/20">
                             <UsersIcon size={28} />
                         </div>
-                        Customer CRM
+                        Customer List
                     </h2>
                     <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mt-3">
                         Manage Your Client Database
                     </p>
                 </div>
-                <button
-                    onClick={() => handleOpenModal()}
-                    className="flex items-center gap-2 px-6 py-4 bg-brand-600 text-white rounded-2xl hover:bg-brand-700 transition-all shadow-xl shadow-brand-500/20 font-black text-sm uppercase tracking-wider"
-                >
-                    <Plus size={20} />
-                    Add New Customer
-                </button>
+                <div className="flex items-center gap-3">
+                    <input
+                        type="file"
+                        accept=".csv"
+                        className="hidden"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                    />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isImporting}
+                        className="flex items-center gap-2 px-6 py-4 bg-white text-slate-600 border-2 border-slate-200 rounded-2xl hover:bg-slate-50 transition-all font-black text-sm uppercase tracking-wider"
+                    >
+                        {isImporting ? (
+                            <div className="w-5 h-5 border-2 border-slate-400 border-t-brand-500 rounded-full animate-spin" />
+                        ) : (
+                            <Upload size={20} />
+                        )}
+                        Bulk Import
+                    </button>
+                    <button
+                        onClick={() => handleOpenModal()}
+                        className="flex items-center gap-2 px-6 py-4 bg-brand-600 text-white rounded-2xl hover:bg-brand-700 transition-all shadow-xl shadow-brand-500/20 font-black text-sm uppercase tracking-wider"
+                    >
+                        <Plus size={20} />
+                        Add New Customer
+                    </button>
+                </div>
             </div>
 
             {/* Search Bar */}
@@ -295,19 +430,6 @@ const CustomerCRM = () => {
                                         className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all"
                                         placeholder="+353 123 456 789"
                                     />
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-black text-slate-600 mb-2 uppercase tracking-wider">Gender</label>
-                                    <select
-                                        value={formData.gender}
-                                        onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
-                                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all"
-                                    >
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
-                                    </select>
                                 </div>
 
                                 <div className="md:col-span-2">

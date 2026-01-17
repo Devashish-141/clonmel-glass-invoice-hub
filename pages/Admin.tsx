@@ -16,6 +16,12 @@ const Admin = () => {
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'PRODUCTS' | 'USERS'>(currentView === 'USERS' ? 'USERS' : 'PRODUCTS');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+
+  // System Engine Password - Change this to your desired password
+  const ADMIN_PASSWORD = 'clonmel2026';
 
   useEffect(() => {
     if (currentView === 'USERS') setActiveTab('USERS');
@@ -129,11 +135,16 @@ const Admin = () => {
   };
 
   const handleDeleteUser = async (id: string) => {
-    if (window.confirm("Revoke access for this user?")) {
+    const userToDelete = users.find(u => u.id === id);
+    const userName = userToDelete?.name || 'this user';
+
+    if (window.confirm(`⚠️ DELETE USER PROFILE\n\nAre you sure you want to permanently delete "${userName}"?\n\nThis will:\n• Remove the user from the database\n• Revoke all system access\n• Delete the user profile from the site\n\nThis action CANNOT be undone.`)) {
       try {
         await deleteUser(id);
+        alert(`✓ User "${userName}" has been successfully deleted from the system and database.`);
       } catch (err) {
-        alert("Failed to delete user.");
+        alert(`✗ Failed to delete user. Please try again or check your database connection.`);
+        console.error('Delete user error:', err);
       }
     }
   };
@@ -210,8 +221,68 @@ ALTER TABLE invoices DISABLE ROW LEVEL SECURITY;
 ALTER TABLE users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE app_settings DISABLE ROW LEVEL SECURITY;`;
 
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+      setPasswordError(false);
+      setPasswordInput('');
+    } else {
+      setPasswordError(true);
+      setTimeout(() => setPasswordError(false), 2000);
+    }
+  };
+
+  // Show password gate if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-md mx-auto mt-20">
+        <div className="bg-white p-10 rounded-3xl border-2 border-slate-200 shadow-2xl">
+          <div className="flex items-center justify-center mb-8">
+            <div className="p-4 bg-brand-500 text-white rounded-2xl shadow-xl shadow-brand-500/20">
+              <ShieldCheck size={32} />
+            </div>
+          </div>
+          <h2 className="text-2xl font-black text-slate-800 text-center mb-2">System Engine Access</h2>
+          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest text-center mb-8">
+            Authentication Required
+          </p>
+          <form onSubmit={handlePasswordSubmit} className="space-y-6">
+            <div>
+              <label className="block text-xs font-black text-slate-600 mb-2 uppercase tracking-wider">
+                Admin Password
+              </label>
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-brand-500/10 outline-none transition-all ${passwordError
+                  ? 'border-rose-500 focus:border-rose-500'
+                  : 'border-slate-200 focus:border-brand-500'
+                  }`}
+                placeholder="Enter password"
+                autoFocus
+              />
+              {passwordError && (
+                <p className="text-xs text-rose-500 font-bold mt-2 animate-in fade-in slide-in-from-top-1">
+                  Incorrect password. Please try again.
+                </p>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="w-full px-6 py-4 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-all font-black uppercase tracking-wider shadow-xl shadow-brand-500/20"
+            >
+              Unlock System Engine
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 pb-24">
+    <div className="max-w-6xl mx-auto space-y-8 pb-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black text-slate-800 tracking-tight">System Engine</h2>
@@ -286,7 +357,16 @@ ALTER TABLE app_settings DISABLE ROW LEVEL SECURITY;`;
               </select>
             </div>
 
-            <div className="bg-white rounded-[2rem] border-2 border-slate-100 overflow-hidden shadow-xl">
+            <div className="bg-white rounded-[2rem] border-2 border-slate-100 overflow-hidden shadow-xl mb-12">
+              <div className="bg-slate-900 px-8 py-4 flex items-center justify-between">
+                <h3 className="text-white font-black uppercase tracking-widest text-sm flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                  Mirrorzone <span className="opacity-50">Collection</span>
+                </h3>
+                <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-3 py-1 rounded-full uppercase tracking-widest">
+                  Mirrors Only
+                </span>
+              </div>
               <table className="w-full">
                 <thead className="bg-slate-50/80 border-b-2 border-slate-100">
                   <tr className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
@@ -296,29 +376,81 @@ ALTER TABLE app_settings DISABLE ROW LEVEL SECURITY;`;
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredProducts.map(p => (
-                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="px-8 py-6">
-                        <div className="font-black text-slate-900 group-hover:text-brand-600 transition-colors">{String(p.name)}</div>
-                        <div className="text-[9px] font-bold text-slate-400 mt-1 uppercase">{String(p.category)}</div>
-                      </td>
-                      <td className="px-8 py-6">
-                        <span className="text-sm font-black text-slate-800">€{Number(p.price).toFixed(2)}</span>
-                        <span className="text-[10px] font-bold text-slate-400 ml-1.5 uppercase">/ {String(p.unit)}</span>
-                      </td>
-                      <td className="px-8 py-6 text-right flex items-center justify-end gap-3">
-                        <button onClick={() => {
-                          setEditingProduct(p);
-                          setPName(p.name);
-                          setPPrice(p.price.toString());
-                          setPUnit(p.unit);
-                          setPCategory(p.category);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }} className="p-3 text-slate-300 hover:text-amber-600 hover:bg-amber-50 rounded-2xl transition-all"><Edit2 size={18} /></button>
-                        <button onClick={() => handleDeleteProduct(p.id)} className="p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"><Trash2 size={18} /></button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredProducts.filter(p => p.category === 'Mirrors').length === 0 ? (
+                    <tr><td colSpan={3} className="p-12 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">No mirrors found in catalog</td></tr>
+                  ) : (
+                    filteredProducts.filter(p => p.category === 'Mirrors').map(p => (
+                      <tr key={p.id} className="hover:bg-slate-50/50 transition-colors group">
+                        <td className="px-8 py-6">
+                          <div className="font-black text-slate-900 group-hover:text-brand-600 transition-colors">{String(p.name)}</div>
+                          <div className="text-[9px] font-bold text-slate-400 mt-1 uppercase">{String(p.category)}</div>
+                        </td>
+                        <td className="px-8 py-6">
+                          <span className="text-sm font-black text-slate-800">€{Number(p.price).toFixed(2)}</span>
+                          <span className="text-[10px] font-bold text-slate-400 ml-1.5 uppercase">/ {String(p.unit)}</span>
+                        </td>
+                        <td className="px-8 py-6 text-right flex items-center justify-end gap-3">
+                          <button onClick={() => {
+                            setEditingProduct(p);
+                            setPName(p.name);
+                            setPPrice(p.price.toString());
+                            setPUnit(p.unit);
+                            setPCategory(p.category);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }} className="p-3 text-slate-300 hover:text-amber-600 hover:bg-amber-50 rounded-2xl transition-all"><Edit2 size={18} /></button>
+                          <button onClick={() => handleDeleteProduct(p.id)} className="p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"><Trash2 size={18} /></button>
+                        </td>
+                      </tr>
+                    )))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-white rounded-[2rem] border-2 border-slate-100 overflow-hidden shadow-xl">
+              <div className="bg-red-600 px-8 py-4 flex items-center justify-between">
+                <h3 className="text-white font-black uppercase tracking-widest text-sm flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                  Clonmel Glass <span className="opacity-70">Collection</span>
+                </h3>
+                <span className="text-[10px] font-bold text-white/80 bg-red-700 px-3 py-1 rounded-full uppercase tracking-widest">
+                  General Catalog
+                </span>
+              </div>
+              <table className="w-full">
+                <thead className="bg-slate-50/80 border-b-2 border-slate-100">
+                  <tr className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                    <th className="text-left px-8 py-6">Product Line</th>
+                    <th className="text-left px-8 py-6">Pricing Index</th>
+                    <th className="text-right px-8 py-6">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredProducts.filter(p => p.category !== 'Mirrors').length === 0 ? (
+                    <tr><td colSpan={3} className="p-12 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">No other products found</td></tr>
+                  ) : (
+                    filteredProducts.filter(p => p.category !== 'Mirrors').map(p => (
+                      <tr key={p.id} className="hover:bg-slate-50/50 transition-colors group">
+                        <td className="px-8 py-6">
+                          <div className="font-black text-slate-900 group-hover:text-brand-600 transition-colors">{String(p.name)}</div>
+                          <div className="text-[9px] font-bold text-slate-400 mt-1 uppercase">{String(p.category)}</div>
+                        </td>
+                        <td className="px-8 py-6">
+                          <span className="text-sm font-black text-slate-800">€{Number(p.price).toFixed(2)}</span>
+                          <span className="text-[10px] font-bold text-slate-400 ml-1.5 uppercase">/ {String(p.unit)}</span>
+                        </td>
+                        <td className="px-8 py-6 text-right flex items-center justify-end gap-3">
+                          <button onClick={() => {
+                            setEditingProduct(p);
+                            setPName(p.name);
+                            setPPrice(p.price.toString());
+                            setPUnit(p.unit);
+                            setPCategory(p.category);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }} className="p-3 text-slate-300 hover:text-amber-600 hover:bg-amber-50 rounded-2xl transition-all"><Edit2 size={18} /></button>
+                          <button onClick={() => handleDeleteProduct(p.id)} className="p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"><Trash2 size={18} /></button>
+                        </td>
+                      </tr>
+                    )))}
                 </tbody>
               </table>
             </div>

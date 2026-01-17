@@ -29,12 +29,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3F72AF;
+  background: #8c52ff;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #112D4E;
+  background: #7d2fff;
 }
 
 /* Smooth transitions */
@@ -45,4 +45,9 @@ body {
 button,
 a {
   transition: all 0.2s ease;
+}
+
+/* Recharts overrides */
+.recharts-wrapper {
+  outline: none !important;
 }

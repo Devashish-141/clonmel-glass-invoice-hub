@@ -13,21 +13,34 @@ const apiKey = getApiKey();
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export const generateInvoiceNotes = async (customerName: string, itemsDescription: string): Promise<string> => {
-  if (!ai) return "Thank you for choosing Clonmel Glass & Mirrors.";
+  if (!ai) return "Thank you for choosing Clonmel Glass & Mirrors. Payment is due within 30 days of invoice date. All products come with our quality guarantee. For any queries, please contact us.";
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Write a professional, polite, and short invoice note for a glass and mirror company invoice. 
-      Customer: ${customerName}. 
-      Key items: ${itemsDescription}. 
-      Tone: Professional and grateful. 
-      Max length: 2 sentences.`,
+      contents: `You are writing professional invoice notes for Clonmel Glass & Mirrors, a premium glass and mirror installation company.
+
+Customer: ${customerName}
+Items ordered: ${itemsDescription}
+
+Create comprehensive, professional invoice notes that include:
+1. A warm, personalized thank you message acknowledging their specific order
+2. Payment terms (e.g., "Payment is kindly requested within 30 days of invoice date")
+3. A brief mention of quality assurance or warranty (e.g., "All products come with our quality guarantee")
+4. Banking/payment instructions (e.g., "Bank transfer details are provided below" or "Multiple payment methods accepted")
+5. A professional closing with contact information offer
+
+Tone: Professional, warm, and customer-focused
+Style: Well-structured with clear sections
+Length: 4-6 sentences, well-formatted
+Format: Use proper punctuation and paragraph breaks where appropriate.
+
+Make it feel premium and trustworthy while being friendly and approachable.`,
     });
     const result = response.text;
-    return typeof result === 'string' ? result : "Thank you for choosing Clonmel Glass & Mirrors.";
+    return typeof result === 'string' ? result : "Thank you for choosing Clonmel Glass & Mirrors. Payment is due within 30 days. All products come with our quality guarantee.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Thank you for your business!";
+    return "Thank you for your business! Payment is kindly requested within 30 days of invoice date. All our products come with a quality guarantee. For any queries, please don't hesitate to contact us.";
   }
 };
 
